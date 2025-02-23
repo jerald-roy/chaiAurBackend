@@ -1,0 +1,8 @@
+/.vscode
+/node_modules
+./dist
+
+*.env
+//all env related files will be ignored that is why we use *
+.env
+.env.*
