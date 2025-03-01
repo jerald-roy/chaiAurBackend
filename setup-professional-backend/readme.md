@@ -30,7 +30,7 @@ Deployment separation
  12. **Nodemon is only used to track the backend(server) changes in node.js
  - it does not track the frontend files like index.html or style.css 
  - frontend live reloading we use live server or react build-in dev server 
- 13. **controllers directory** functionalities
+ 13. **controllers directory** functionalities , generally used to define the logic or the function of the routes which will be exported and given to the route folder
  14. **db** database connetion
  15. **middlewares** things inbetween the frontend request and the actual server operation like fullfillment
  16. **model** blueprint of how the data is structured in the database
@@ -41,3 +41,17 @@ Deployment separation
   18. **prettier** as an dev dependency not as a vs code extension - it will automatically commit the code if someone commit or push the changes to so that we maintain the standard even when multiple people are working together 
    - **prettierrc** all the configuration of the prettierrc extension
    - **prettierignore file** which are files where prettier style should not apply
+ 19. **app.js** you can see the app.js file which is used to set up express server , middlewares and routes generally
+ 20. **mongoose package** to connect to the db
+  - js cannot directly communicate with the mongo db server because mongodb is not builtin js
+  -  The MongoDB package is like a raw API (low-level access).
+ - The Mongoose package is like a wrapper API (adds extra features like schemas).
+ 21. **express package** to set up the server
+ 22. you can not only connect to the db from using the index.js file but in there only you can try to start the server also that is using the express js
+23. Yes! If you load environment variables in index.js (the entry point), they will be available in all other files of your backend automatically.
+24. **there are two ways to load the .env variables**
+ - a. Explicitly call dotenv.config() inside your code.
+ - b. Use -r dotenv/config in package.json scripts.
+ - If your .env is not in the root directory, use dotenv.config().
+- If your .env is in the root directory, the script method works fine.
+ - but you are adding this extra bit inside the script because you are using the import syntax
