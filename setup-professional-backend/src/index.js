@@ -13,8 +13,33 @@ dotenv.config({
     path:'./.env.sample'
 })
 
+/*An async function always returns a Promise so that the calling (parent) function can know what happened inside it.
+so here connectDB is an async function and its returning a promise
+*/
 connectDB()
+    .then(() => {
+        //this first para is just called as an event but ntg more than a string that helps us to identify if there are any errors
+        const server =    app.listen(process.env.PORT || 8000, () => {
+            console.log(`Server is running at port : ${process.env.PORT}`)
+        })
+        //what the server.on is going to log back is predefined erros
+        server.on("error", (error) => {
+            console.log(`Err : ${error}`)
+            throw error
+        })
+    })
+    .catch((err) => {
+        console.log("MONGO db connection failed !!! " , err)
+    })
+     
+/*
+You're right that .catch() only handles connection (DB) errors, not server errors.
+But server errors (like port issues) happen after then() runs, so they won’t be caught by .catch().
 
+So, when you throw inside server.on("error"), it:
+✅ Stops only that execution (doesn't crash the entire app immediately).
+✅ Prevents the app from running with a broken server.
+*/
 
 
 
