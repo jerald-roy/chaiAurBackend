@@ -55,3 +55,54 @@ Deployment separation
  - If your .env is not in the root directory, use dotenv.config().
 - If your .env is in the root directory, the script method works fine.
  - but you are adding this extra bit inside the script because you are using the import syntax
+ 25. **user.model.js** or usermodel.js it wont matter much but its a standard pratice and easily helps us that this file is a db model file
+ 26. You can say a **model** is an active version of a **schema** because:
+
+Schema = Defines the structure (blueprint).
+Model = Uses the schema to interact with the database (CRUD operations).
+
+27. **aggregation Pipeline** is mainly used to combine multiple queries into one efficient process instead of running separate queries.
+ - Aggregation Pipeline → Defines how data should be queried, transformed, and combined after it’s stored.
+
+28. **bcrypt.js** to help you to hash the password(both like encrypting and decrypting)
+
+29. **JWT** 
+- User Authentication → When a user logs in, the server generates a JWT and sends it to the client. The client includes this token in future requests to verify identity.
+- Stateless Authorization → No need to store sessions on the server; the token itself carries user data.
+- Security → Tokens are signed to prevent tampering and can include an expiry time for safety.
+
+30. **pre** its a middleware which does something just before data is getting saved inside the database
+ - in mongoose both **hook** and **middleware** refer to same thing
+
+ 31. After processing the request inside a function, if you want to call another middleware, you use **next()**.
+
+ 32. few things about the mongoose middleware
+ - used for modifing documents just before or after the db operations
+ - moves to the next middleware or saves the document
+
+33. **custom methods** does not run automatically , here someone has to call them specifically , here we dont have something like pre or post on ceratin operations like the middleware
+
+34. **document in mongodb** A document is actual data retrieved from the database using a Mongoose model.
+
+🔹 The term "document" comes from MongoDB, since MongoDB is a document-based NoSQL databas
+
+35. **refresh token**  The whole point of the refresh token system is to limit the damage if an attacker somehow steals an access token.
+
+- A refresh token is used to get a new JWT access token when the old one expires without making the user log in again.
+
+How Refresh Tokens Work?
+1️⃣ User logs in → Server gives both an access token & refresh token.
+2️⃣ Access token expires after a short time (e.g., 15 min).
+3️⃣ Frontend sends the refresh token to get a new access token.
+4️⃣Server verifies the refresh token and returns a new access token. 
+5️⃣ User stays logged in without needing to enter credentials again.
+
+36. JWT(json web tokens)
+
+37. Cookies are unique to each browser and can store small data, but storing sensitive info (like login details) in cookies is not safe.
+
+Sessions store data on the server, and only a session ID is stored in the cookie.
+
+The browser sends the session ID with every request, so the server knows which user it is.
+
+That’s why cookies and sessions work together—cookies store only an identifier, while the actual user data stays secure on the server
