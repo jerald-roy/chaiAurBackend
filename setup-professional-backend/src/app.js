@@ -21,4 +21,16 @@ app.use(express.static("public"))
 
 //this setting allows you to make crud operation to the cookies that exist on the browser
 app.use(cookieParser())
+
+
+
+//-------------------routes-----------------
+import userRouter from './routes/user.routes.js'
+
+
+//routes declaration
+//here instead of using app.get we should use app.use because we are importing routes to this file using the middleware
+// this helps in 2 things "/api/v1/users" 1.versioning - helps in further upgrades 2.clearity to keep track of the updates
+app.use("/api/v1/users", userRouter)
+//http://localhost:8000/api/v1/users/register
 export {app}

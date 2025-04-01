@@ -106,3 +106,41 @@ Sessions store data on the server, and only a session ID is stored in the cookie
 The browser sends the session ID with every request, so the server knows which user it is.
 
 That’s why cookies and sessions work together—cookies store only an identifier, while the actual user data stays secure on the server
+
+38. **multer** : Yes, exactly! Multer is a middleware for Express that handles file uploads by processing
+
+39. multer is used for taking the file from the user ah and can use the link from the cloudinary to upload ah the other option is taking the file using the multer and storing it locally and then uploading to cloudinary
+
+40. **cloudinary.js** here we are using this file thinking it as the file has already been stored inside the local server and from this local server we are uploading the file to cloudinary and once we upload we dont need that particular file to be kept in the server
+
+41. **fs** fs (File System) is a Node.js module, not a part of JavaScript itself. It is provided by Node.js runtime to handle file operations like:
+
+✅ Reading files (fs.readFile())
+✅ Writing files (fs.writeFile())
+✅ Deleting files (fs.unlink())
+✅ Creating directories (fs.mkdir())
+
+42. directly sending raw data from users to the database can:
+
+Be error-prone and insecure (SQL injection risks).
+
+Lead to unstructured, messy code when handling complex queries.
+
+Make switching databases harder (e.g., from MySQL to PostgreSQL).
+
+Why ORM?
+ORM provides a predefined structure (models/schemas) so we can safely interact with the database using objects instead of raw queries.
+
+Example Using Mongoose (MongoDB ORM)
+
+43. **{Routes}** so primarily we use app.use to create routes but if you want to keep the routes on different file and them here you can do it in 2 ways on is create routes and import it indivisually or create routes used {Routes} that available in express and then just export and import this Routes to use all the created routes in other function so this {Route} thats avaiable in express is some kind of file where you can add all your routes ah ? -yes exactly 
+
+44. **main idea of keeping the routes in the other file** 
+You keep app.js (or server.js) cleaner and simpler instead of cluttering it with multiple routes.
+
+You group related routes under a common prefix (e.g., /users for all user-related operations).
+
+With one app.use("/users", userRoutes), all sub-routes like /users/, /users/:id, /users/create are handled inside userRoutes.js.
+
+This makes your project more modular, readable, and scalable as you add more features!
+

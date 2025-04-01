@@ -5,7 +5,7 @@ Yes! If you load environment variables in index.js (the entry point), they will 
 */
 import dotenv from "dotenv"
 import connectDB from "./db/index.js";
-
+import {app} from './app.js'
 //this below code is part of importing the dotenve package
 //dotenv.config loads the environment variables into process.env
 //REFER MORE ABOUT DOTENV IN THE READ ME.MD FILE
@@ -16,6 +16,7 @@ dotenv.config({
 /*An async function always returns a Promise so that the calling (parent) function can know what happened inside it.
 so here connectDB is an async function and its returning a promise
 */
+//frist we want to make the db connection this is happening thorugh different port and then once the db got connected only then we should start the server on the different port
 connectDB()
     .then(() => {
         //this first para is just called as an event but ntg more than a string that helps us to identify if there are any errors
