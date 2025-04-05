@@ -53,7 +53,7 @@ const userSchema = new Schema({
 userSchema.pre("save", async function (next) {
     if (!(this.isModified("password"))) return next()
     //When you call next() without any arguments inside a Mongoose pre middleware, it simply continues the normal save process.
-    this.password = bcrypt.hash(this.password, 10)
+    this.password = await bcrypt.hash(this.password, 10)
     next()
     //this above line takes the password from the schema
     //here we introduce an problem ? everytime some thing a user changes like an avatar this .pre function run again which we dont want because he has to changed the password so we are using if condition

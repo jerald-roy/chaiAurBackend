@@ -1,3 +1,6 @@
+//The ApiError class is mainly for custom errors, but it's not necessarily used for all normal (built-in) errors.
+//its just the wrapper or the shell
+
 class ApiError extends Error {
     constructor(
         statusCode,
