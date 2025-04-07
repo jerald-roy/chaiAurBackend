@@ -10,7 +10,7 @@ import {app} from './app.js'
 //dotenv.config loads the environment variables into process.env
 //REFER MORE ABOUT DOTENV IN THE READ ME.MD FILE
 dotenv.config({
-    path:'./.env.sample'
+    path:'./.env'
 })
 
 /*An async function always returns a Promise so that the calling (parent) function can know what happened inside it.

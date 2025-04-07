@@ -13,6 +13,7 @@ router.route("/register").post(
             
         },
         {
+            //when sending the feild the feild name should also be coverImage
             name: "coverImage",
             maxCount:1
         }
