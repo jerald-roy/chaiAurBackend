@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { registerUser } from "../controllers/user.controller.js"
+import { loginUser , registerUser } from "../controllers/user.controller.js"
 //here we are using the below import called as upload because we wanna take the files also like(avatar or image)from the user and this upload is nothing but the middleware of the express that we use it to store locally on the server for some time before uploading it to the cloudinary
 import {upload} from "../middlewares/multer.middleware.js"
 const router = Router()
@@ -21,4 +21,7 @@ router.route("/register").post(
     registerUser
 )
 
+router.route("/login").post(loginUser)
+
+router.route("/logout").post(verifyJWT , logoutUser)
 export default router

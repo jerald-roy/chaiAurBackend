@@ -3,6 +3,33 @@ import { ApiError } from "../utils/apiError.js"
 import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/apiResponse.js";
+
+
+const generateAccessAndRefreshTokens = async (userId) => {
+    try {
+        var user = await User.findById(userId)
+       var accessToken =  user.generateAccessToken()
+        var refreshToken = user.generateRefreshToken()
+        //now need to store the refresh token inside the db so we have a refresh token feild declared for every user using the mongoose in the user.model using that we will store the refresh token in the db
+        user.refreshToken = refreshToken
+        //there are 2 ways of writing it to the db one is direct db write : await User.updateOne({ _id: userId }, { refreshToken: newToken }); and the second one is in-memory modification + .save() here we are doing in memory modification
+        /* 
+        Whenever you use .save(), Mongoose will use the schema to check:
+
+        If all fields follow the correct format
+
+        And if required fields are present and valid
+
+        So even if you're not changing a required field (like password), it must still be there, or .save() will throw a validation error.
+        */
+        await user.save({ validateBeforeSave: false })
+        
+        return {accessToken , refreshToken}
+    } catch (error) {
+        throw new ApiError(500 , "Some internal error while generating access and refresh token")
+    }
+}
+
 //this method is used to register the user
 const registerUser = asyncHandler(async (req, res) => {
     //now we need to wrie a logic for registering the user
@@ -107,4 +134,93 @@ const registerUser = asyncHandler(async (req, res) => {
     
 })
 
-export {registerUser}
+const loginUser = asyncHandler(async (req, res) => {
+    //req body -> take out the data
+     
+    const { email, username, password } = req.body
+    if (!username || !email) {
+        throw new ApiError(400 , "username or email is required" )
+    }
+    //username or email can be validated using
+    //find the user
+    //this $or operator is just the mongoose operator which tells us that : if the username is there find that or if the email is there find that
+     var user =   await User.findOne({
+        $or: [{username} , {email}]
+  })
+    if (!user) {
+        throw new ApiError(404 , "user has not been registed or sign up")
+    }
+
+//password check
+//this can be done using the custom method that we have created from the user model aka userSchema model
+ //here we are not using the User but user because User is part of the mongoose and user is the instance that we have received from the above code
+    const isPasswordValid = user.isPasswordCorrect(password)
+    if (!isPasswordValid) {
+        throw new ApiError(401 ,"password incorrect")
+    }
+    //access and refresh token
+    
+   //=> this operation of generating the access token and the refesh token is so common that we wanna use it many situations or places , we will create an method for that
+    var {accessToken , refreshToken } = await generateAccessAndRefreshTokens(user._id)
+    
+    //send cookie
+    //we can use the above user itself but it does not have complete properties like accessToken and refreshToken and it also has unwanted properties which we dont want to send back to the user like the password
+    var loggedInUser = await User.findById(user.id).select("-password -refreshToken")
+    //but if you think the above operation is costly try to update the object of the user which is the first time you are getting the data of the user
+
+    //the below step is used to design the cookies
+    //the below step allows only the frontend to modify the data and does not allow the backend to modify the data
+    const options = {
+        httpOnly: true,
+        secure:true
+    }
+
+    return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(new ApiResponse(
+        200,
+        {
+            user: loggedInUser, accessToken,
+            refreshToken
+        },
+        "user logged in successfully"
+    ))
+    //here above res.status(200) is getting resolved to res
+    // this values of status 200 is stored inside the res object itself now we have the res object with the data of status
+    //since we already have res we can just use .methods on it so every time we do this on certain methods like status , cookies its not sending the response instead resolving it into res object storing the resolved data 
+    //but when you use certain .methods like .json and .send then its goona send the data so its very important to chain things accordingly
+})
+
+const logoutUser = asyncHandler(async (req, res) => {
+   /*
+   so here if we remember we always had to send the token at every request from the frontend and we will capitalize this request to get the user info to do this  we will write the custom middleware that runs before this function
+   */
+   await User.findByIdAndUpdate(
+        req.user._id,
+        //what you wanna update is next
+        {
+            $set: {
+                refreshToken:undefined
+            }
+        },
+        {
+            /*
+            The new: true option means:
+
+            ✅ "After updating the document, return the updated version, not the old one."
+            */
+            new : true
+        }
+)
+const options = {
+    httpOnly: true,
+    secure:true
+    }
+return res.status(200).clearCookie("accessToken" , options).clearCookie("refreshToken",options).json(new ApiResponse(200, {} , "user logged out"))
+})
+
+
+
+export {
+    registerUser,
+    loginUser,
+    logoutUser
+}

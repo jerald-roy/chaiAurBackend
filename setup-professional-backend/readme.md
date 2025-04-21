@@ -144,3 +144,4 @@ With one app.use("/users", userRoutes), all sub-routes like /users/, /users/:id,
 
 This makes your project more modular, readable, and scalable as you add more features!
 
+45. in order to create **cookies** we use res.cookie this is part of the express js and not the cookie parser package ok but **cookie parser** package only allows to read the cookies that has been sent through the request from the frontend
