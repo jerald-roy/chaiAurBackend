@@ -1,7 +1,7 @@
-import { ApiError } from "../utils/apiError";
-import { asyncHandler } from "../utils/asyncHandler";
+import { ApiError } from "../utils/apiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken"
-import {User} from "../models/user.model"
+import {User} from "../models/user.model.js"
 
 
 //so next is used to go for the next middleware or the rotue itself which is an end point for the next ok so we should not only define the function of the middleware but also declare it right just before the controller of the route
@@ -19,7 +19,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
       var user = await User.findById(decodedToken?._id).select("-password -refreshToken")
   
       if (!user) {
-          throw new ApiError("401", "Invalid access token")
+          throw new ApiError(401, "Invalid access token")
           
       }
       //here we are adding the new value to the req object

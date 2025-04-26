@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js"
 import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/apiResponse.js";
+import { jwt } from "jsonwebtoken";
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -138,7 +139,7 @@ const loginUser = asyncHandler(async (req, res) => {
     //req body -> take out the data
      
     const { email, username, password } = req.body
-    if (!username || !email) {
+    if (!username && !email) {
         throw new ApiError(400 , "username or email is required" )
     }
     //username or email can be validated using
@@ -217,10 +218,75 @@ const options = {
 return res.status(200).clearCookie("accessToken" , options).clearCookie("refreshToken",options).json(new ApiResponse(200, {} , "user logged out"))
 })
 
+//we are writing this handler because we assume that the user wants new token using the refresh token he has
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    var incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+    
+    if (!incomingRefreshToken) {
+        throw new ApiError(401 , "unauthorized request")
+    }
 
+   try {
+    var decodedToken =  jwt.verify(
+         incomingRefreshToken,
+         process.env.REFRESH_TOKEN_SECRET
+     )
+ 
+     var user = await User.findById(decodedToken?._id)
+ 
+     if (!user) {
+         throw new ApiError(401 , "Invalid refresh token")
+     }
+ 
+      /*
+       about the error below :
+       If no refresh token in DB for that user ID,
+       or the token in cookie ≠ token in DB,
+       both are caught by the same check ➔ “Refresh token invalid or expired.”
+ 
+       Here are main reasons why it can mismatch:
+ 
+ 🔵 User logged out ➔ You deleted refresh token from DB or updated it, but user's old cookie is still being sent.
+ 
+ 🔵 Refresh token rotated (new token generated) ➔ DB has new token, cookie has old one.
+ 
+ 🔵 Attacker trying to use an old or fake refresh token ➔ Cookie token is random or tampered.
+ 
+ 🔵 Manual DB or cookie tampering ➔ e.g., token deleted or modified manually somewhere.
+      */
+     if (incomingRefreshToken !== user?.refreshToken) {
+         throw new ApiError(401 , "refresh token is expired or used") 
+     }
+ 
+     //now we have made all the checks and everything and its time to generate the new token and send it back in the form of cookies
+ 
+     var options = {
+         httpOnly: true,
+         secure:true
+     }
+ 
+    var {accessToken , newRefreshToken} =  await generateAccessAndRefreshTokens(used._id)
+     
+     return res
+         .status(200)
+         .cookie("accessToken", accessToken, options)
+         .cookie("refreshToken", newRefreshToken, options)
+         .json(
+             new ApiResponse(
+                 200,
+                 { accessToken,refreshToken:newRefreshToken },
+                 "Access token refreshed"
+             )
+         )
+   } catch (error) {
+    throw new ApiError(401 , error?.message || "Invalid refresh token")
+   }
+        
+})
 
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    refreshAccessToken
 }
