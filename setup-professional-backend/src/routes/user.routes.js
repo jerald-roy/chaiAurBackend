@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { loginUser, registerUser , logoutUser , refreshAccessToken} from "../controllers/user.controller.js"
+import { loginUser, registerUser , logoutUser , refreshAccessToken , changeCurrentPassword , getCurrentUser ,  updateAccountDetails, updateUserAvatar, updateUserCoverImage} from "../controllers/user.controller.js"
 import { verifyJWT } from "../middlewares/authCustom.js"
 //here we are using the below import called as upload because we wanna take the files also like(avatar or image)from the user and this upload is nothing but the middleware of the express that we use it to store locally on the server for some time before uploading it to the cloudinary
 import {upload} from "../middlewares/multer.middleware.js"

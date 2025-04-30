@@ -284,9 +284,108 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         
 })
 
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword } = req.body
+    //now we need the user who is hitting this route so that we can compare the old password stored in the db as well as the old password he is sending it now so how do we get the user 2. we can get it by the middleware because we have created the middleware which checks the he has the proper access token and adds the user to the req
+    var user =await User.findById(req.user?._id)
+    //now we have the user the current one who is hitting the end point and we have the password that we are receiving it so we need to check if both are the same but we already have created a function for this
+    var isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+    
+    if (!isPasswordCorrect) {
+        throw new ApiError(400 , "Invalid old password")
+    }
+    //here we just do not want to save to the db just like that so we want to encrpyt and save it so mongoose middlware or the pre hook does that when we use user.save()
+
+    user.password = newPassword
+
+    await user.save({ validateBeforeSave: false })
+    
+    return res.status(200).json(new ApiResponse(200, {} , "password changed successfully"))
+})
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res.status(200).json(200,req,user,"current user fetched successfully")  
+})
+
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    //whenever you want to update the image use the seperate controller - production level advice - improves congestion level itseems
+    const { fullName, email } = req.body
+    if (!fullName || !email) {
+        throw new ApiError(400 , "No new updates are detected!")
+    }
+  const user =  await User.findByIdAndUpdate(
+        req.user?._id,
+      {
+          $set: {
+              fullName:fullName,
+              email:email
+            }
+        },
+      { new: true })//this new : true just gives back the updated info
+    .select("-password")
+    
+    return res.status(200).json(new ApiResponse(200,user,"Account details updated successfully"))
+})
+
+//this controller is used for updating files:
+//and this controller is not deleting the existing file thats there in the cloudinary platform
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.file?.path
+    
+    if (!avatarLocalPath) {
+        throw new ApiError(400,"Avatar file is missing")
+    }
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+
+    if (!avatar.url) {
+        throw new ApiError(400,"Error while uploading on avatar")
+    }
+
+    const userId = req.user?._id
+    //some db call
+  const user =   await User.findByIdAndUpdate(userId, {
+     $set:{ avatar:avatar.url}
+    }, {
+      new:true // we need to return it because we need to show right to the frontend the new updated details
+    }).select("-password")
+    
+   return res.status(200).json(new ApiResponse(200 , {user},"avatar updated successfully"))
+
+})
+ 
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+    const coverImageLocalPath = req?.file.path
+
+    if (!coverImageLocalPath) {
+        throw new ApiError(400,"No coverImage has been uploaded!")
+    }
+
+    //now should upload on cloudinary
+    const userCoverImageObject = await uploadOnCloudinary(coverImageLocalPath)
+
+    if (!userCoverImageObject.url) {
+        throw new ApiError(400, "cannot upload the cover Image")
+    }
+   
+    //now get the user so we are indeed using two middlewares on is multer ka middleware and other one is user ka middlerware
+   const updatedUser =  await findByIdAndUpdate(req?.user?._id,
+        {
+             $set:{coverImage:userCoverImageObject.url}
+         },
+    {new:true}
+     ).select("-password")
+
+    return res.status(200).json(new ApiResponse(200 , updatedUser , "cover image has been updated successfully"))
+})
 export {
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage
 }

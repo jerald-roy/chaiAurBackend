@@ -49,8 +49,16 @@ const userSchema = new Schema({
 }, {
     timestamps:true
 })
+/*
+next is a callback(function that executes after the funciton) that you must call manually to tell Mongoose:
 
+"I'm done with my custom logic, continue with saving."
+
+or "Something went wrong, stop and throw an error."
+*/
 userSchema.pre("save", async function (next) {
+    // If you forget next(), the operation will get stuck!
+// Mongoose will wait forever, thinking your middleware is still working.
     if (!(this.isModified("password"))) return next()
     //When you call next() without any arguments inside a Mongoose pre middleware, it simply continues the normal save process.
     this.password = await bcrypt.hash(this.password, 10)
