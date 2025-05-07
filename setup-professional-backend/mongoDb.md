@@ -9,4 +9,25 @@
 
  4. we can just connect to the db using the single line thats avaiable in the mongoose documentation but we can also use try / catch or async / await along with it!
 
- 
+ 5. *Database* = a collection of related data (like a folder) (videotube)
+   
+6. *collection* = a table in the database (users)
+
+7. *document* = {
+  "_id": ObjectId("..."),
+  "username": "jroy",
+  "email": "jerald@gmail.com",
+  ...
+} // written in JSON FORMAT
+
+8. **aggregation pipeline** : its a function that helps us to perform set of operations collectively where each operation is called a stage and an input for the each stage depends upon the result of the previous stage
+- *$lookup* - is the operator that is used inside this aggregation function to do the left join as well the as the right join
+- *left join* - its primarily depends upon two things
+(1) which document feild is used inside which other document feild for example: a is the users document and b is the order document so a's feild is being used in b's document 
+(2) upon which you use aggregate function you can use aggregate function upon a as well as b 
+- if u use on a that means you try to search things on b i.e left join ex: where this the useid present in the orders (b) document see you are searching the b document here so its left join
+- if u use aggregate on b that means you are seaching things on a i.e right join 
+
+, even if you simulate a right join by using $lookup in a way that seems like it's coming from the right side, it still behaves like a left join because it appends data to the original collection you're aggregating on (the "root" structure).
+
+note: sql can by default using structure itself can have left and right join to use can directly call on operator on that but here in mongo since its nosql we have use something called aggregation pipeline

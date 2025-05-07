@@ -304,7 +304,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 })
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  return res.status(200).json(200,req,user,"current user fetched successfully")  
+  return res.status(200).json(new ApiResponse(200,req.user,"current user fetched successfully"))  
 })
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
@@ -330,6 +330,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 //this controller is used for updating files:
 //and this controller is not deleting the existing file thats there in the cloudinary platform
 const updateUserAvatar = asyncHandler(async (req, res) => {
+    //TODO:need to delete the old avatar from the cloudinary
     const avatarLocalPath = req.file?.path
     
     if (!avatarLocalPath) {
@@ -378,6 +379,91 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200 , updatedUser , "cover image has been updated successfully"))
 })
+
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+    //so whenever you try to check for the profile you go the specific url and at the end of the url we assume that there is an username
+    const { username } = req.params
+    //if there is a username exist then trim
+    if (!username?.trim()) {
+        throw new ApiError(400,"username is missing")
+    }
+
+    /*
+Purpose: Finds multiple documents matching the query.
+
+Flexible: Can search using any field, not just _id.
+    */
+    //the result after the aggregate pipeline will be arrays
+const channel =   await  User.aggregate([
+        {
+        $match: {
+               username:username?.toLowerCase()
+           } 
+    }, //we want number of subscribers so we are checking out on channels in the subscription shcema
+    // its not actually joining or sort in the db itself instead its just an operation thats giving back some result
+    {
+        $lookup: {
+            from: "subscriptions",
+            localField: "_id",
+            foreignField: "channel",
+            as:"subscribers"
+        }
+    }, //we want number of channels we have subscribed to so we are joining the subscribers in the subscription schema
+    {
+        $lookup: {
+            from: "subscriptions",
+            localField: "_id",
+            foreignField: "subscriber",
+            as:"subscribedTo"
+        }
+    },
+    //adding feild to the existing user model to return
+    {
+        $addFields: {
+            subscribersCount: {
+                $size:"$subscribers"
+            },
+            channelsSubscibedToCount: {
+                $size:"$subscribedTo"
+            },
+            //now we already have 2 added feilds that is subscibers and subscribedTo
+            //now we want a way to calculate whether we want to follow or not
+            //so if we have logged in we will be having the req.body from there is your user id is matching the any one of the user id that is there in the subscribers which is the newly added feild
+            isSubscribed: {
+                $cond: {
+                    //this in operator is used to check in both the array and the objects
+                    if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                    then: true,
+                    else:false
+                }
+            }
+        }
+    },
+    {
+        //only i am goona project the selected things
+        $project: {
+            fullName: 1,
+            username: 1,
+            subscribersCount: 1,
+            channelsSubscibedToCoun: 1,
+            isSubscribed: 1,
+            avatar: 1,
+            coverImage: 1,
+            email: 1,
+            
+        }
+    }
+    
+])
+    
+    if (!channel?.length) {
+      throw new ApiError(404,"channel does not exist")
+    }  
+    
+    return res.status(200).json(
+        new ApiResponse(200,channel[0] , "user channel fetched successfully")
+    )
+})
 export {
     registerUser,
     loginUser,
@@ -387,5 +473,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChannelProfile
 }
