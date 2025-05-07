@@ -464,6 +464,56 @@ const channel =   await  User.aggregate([
         new ApiResponse(200,channel[0] , "user channel fetched successfully")
     )
 })
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+    const user = await UserActivation.aggregate([
+        {
+            $match: {
+                // _id:req.user._id , if you do like this it wont work because we are not using mongoose here so that it automatcially converts the string into the object ID which mongo db only works with
+                _id:new mongoose.Types.ObjectId(req.user._id)
+            }
+            //ok here wat is happening is user is what we are aggregate thing upon ok now in the user there is watchhistory which contains id and it matches the id from videos and gives back the that whole object of that particualr video and still we have not got the creator of that video that is where we use subpipelines
+
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localFeild: "watchHistory",
+                foreignFeild: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localFeild: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                               { $project: {
+                                   fullName: 1,
+                                   username: 1,
+                                   avatar:1
+                                }}
+                            ]
+                      }  
+                    },
+                    {
+                        $addFields: {
+                            owner: {
+                                //need to get the first element because pipeline only results in an array
+                                $first:"$owner"
+                           } 
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    return res.status(200).json(new ApiResponse(200,user[0].watchHistory,"watch history fetched successfully"))
+
+
+})
 export {
     registerUser,
     loginUser,
@@ -474,5 +524,6 @@ export {
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage,
-    getUserChannelProfile
+    getUserChannelProfile,
+    getWatchHistory
 }

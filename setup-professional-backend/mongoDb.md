@@ -31,3 +31,5 @@
 , even if you simulate a right join by using $lookup in a way that seems like it's coming from the right side, it still behaves like a left join because it appends data to the original collection you're aggregating on (the "root" structure).
 
 note: sql can by default using structure itself can have left and right join to use can directly call on operator on that but here in mongo since its nosql we have use something called aggregation pipeline
+
+9. **Object ID** - The string and ObjectId may look the same, but they’re different types — and while Mongoose auto-converts strings to ObjectIds in queries, native MongoDB does not, so you must convert them manually.
