@@ -1,9 +1,9 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js"
 import { User } from "../models/user.model.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { deleteOnCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/apiResponse.js";
-import { jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -198,8 +198,8 @@ const logoutUser = asyncHandler(async (req, res) => {
         req.user._id,
         //what you wanna update is next
         {
-            $set: {
-                refreshToken:undefined
+            $unset: {
+                refreshToken:1
             }
         },
         {
@@ -265,7 +265,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
          secure:true
      }
  
-    var {accessToken , newRefreshToken} =  await generateAccessAndRefreshTokens(used._id)
+    var {accessToken , newRefreshToken} =  await generateAccessAndRefreshTokens(user?._id)
      
      return res
          .status(200)
@@ -309,21 +309,24 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
     //whenever you want to update the image use the seperate controller - production level advice - improves congestion level itseems
-    const { fullName, email } = req.body
-    if (!fullName || !email) {
+    const { fullname, email } = req.body
+//   console.log(fullName , email)
+    if (!fullname && !email) {
         throw new ApiError(400 , "No new updates are detected!")
     }
+
+  const updateFields = {};
+  if (fullname) updateFields.fullname = fullname;
+  if (email) updateFields.email = email;
+    
   const user =  await User.findByIdAndUpdate(
         req.user?._id,
       {
-          $set: {
-              fullName:fullName,
-              email:email
-            }
+          $set: updateFields
         },
       { new: true })//this new : true just gives back the updated info
     .select("-password")
-    
+    // console.log(user)
     return res.status(200).json(new ApiResponse(200,user,"Account details updated successfully"))
 })
 
@@ -332,11 +335,16 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 const updateUserAvatar = asyncHandler(async (req, res) => {
     //TODO:need to delete the old avatar from the cloudinary
     const avatarLocalPath = req.file?.path
-    
+ 
+
     if (!avatarLocalPath) {
         throw new ApiError(400,"Avatar file is missing")
     }
 
+    //after checking user has given the file and successfully updated only i am going to delete the file that there in the cloudinary
+       var oldpath = req.user?.avatar
+    
+    
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
     if (!avatar.url) {
@@ -351,6 +359,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
       new:true // we need to return it because we need to show right to the frontend the new updated details
     }).select("-password")
     
+    //now its the right time i feel to delete things on the cloudinary
+    // deleteOnCloudinary(oldpath)
    return res.status(200).json(new ApiResponse(200 , {user},"avatar updated successfully"))
 
 })

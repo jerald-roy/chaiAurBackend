@@ -66,6 +66,7 @@ userSchema.pre("save", async function (next) {
     //this above line takes the password from the schema
     //here we introduce an problem ? everytime some thing a user changes like an avatar this .pre function run again which we dont want because he has to changed the password so we are using if condition
 })
+
 //just before the save event we wanna do something that is decrypt more on readme.md file
 // we can't use arrow function inside the 2 paramter because hitesh sir told (this ka reference nahi hota , it should known the contenxt) should read more about it ???
 

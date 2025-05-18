@@ -38,6 +38,8 @@ patch - updates part of the existing resources
 */
 router.route("/update-account").patch(verifyJWT, updateAccountDetails)
 
+//TODO(12-5-25) : should check only two routes that is avatar and converImage(expecially should delete the previous data that is already existed in the cloudinary) 
+
 router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar)
 
 router.route("/cover-image").patch(verifyJWT, upload.single("cover-image"), updateUserCoverImage)

@@ -13,7 +13,8 @@ const uploadOnCloudinary = async (localFilePath) => {
     try {
         if (!localFilePath) return null
        var response = await cloudinary.uploader.upload(localFilePath, {
-           public_id:'hello avatar'
+           public_id: 'hello avatar',
+           invalidate:true
         })
         fs.unlinkSync(localFilePath)
         return response
@@ -25,4 +26,35 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-export {uploadOnCloudinary}
+const deleteOnCloudinary = async (localFilePath) => {
+    try {
+        const publicId = getPublicId(localFilePath)
+        console.log(`public id :` , publicId)
+        cloudinary.uploader.destroy(publicId, (error, result) => {
+            if (error) console.error('Delete error', error)
+            else {
+             console.log('Delete result:',result)
+            }
+        })
+
+    } catch (err) {
+        console.log("there was some error on deleting the old file from the backend" , err)
+    }
+}
+
+function getPublicId(url) {
+    var parts = url.split('/upload/')
+    if (parts.length < 2) return null
+    
+    var pathWithVersion = parts[1]
+    var pathParts = pathWithVersion.split('/')
+
+    if (pathParts[0].startsWith('v')) {
+        pathParts.shift()
+    }
+
+    var fullPath = pathParts.join('/')
+    var publicId = fullPath.replace(/\.[^/.]+$/, '')
+    return decodeURIComponent(publicId)
+}
+export {uploadOnCloudinary , deleteOnCloudinary}
